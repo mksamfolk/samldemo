@@ -22,13 +22,17 @@ import org.opensaml.xml.security.credential.Credential;
 import org.opensaml.xml.signature.Signature;
 import org.opensaml.xml.signature.SignatureValidator;
 import org.opensaml.xml.validation.ValidationException;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.asi.security.saml.api.SamlConfig;
 import com.asi.security.saml.model.SamlAcsData;
 
 @Component
 public class SamlAssertionConsumer {
-
+	
+	@Autowired
+	private SamlConfig samlConfig;
 	
 	public SamlAcsData consumeAssertion(HttpServletRequest request) throws Exception {
 		
@@ -48,7 +52,9 @@ public class SamlAssertionConsumer {
 		boolean status = isResponseStatusSccess(samlResponse);
 		Collection<NameValuePair> attributes = retrieveAttributes(assertion);
 		
-		if (status && verifySignature(messageContext, "MIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKCAQEAj33OuCBfqf8LxJAVZkvgkfupS0GaDxAv6MThni1e80z/UIEVN+ki2/4k/c1gccce9FbuCvW+ubM6MaLUSkyR7fDrRbEX+F44VwJCdJXlq3Awdj+5zfC24N+49fsV4pUYlwnUP4bQ9eOeox2JdcKg0lNq+oQdeBss2wDGf7g9TaY37nOrCtzsRbkyYpYdFvTM5gR3Ude3mhY77u1ykM4iQKFKvbnw9A0othd4B/BUZfqpksYM7Ts0k2Sa5ZBrx534rqkZCVxdZiNJaDi7C9BtP+CRENnw5arfUB6upkkXZdXZK029wrxz5urPjSPlR1AfAqtzfjrmaIWavjs8orVJhQIDAQAB")) {
+		String idpPublicKey = samlConfig.getIdpPublicKey(idp);
+		
+		if (status && verifySignature(messageContext, idpPublicKey)) {
 			acsData.setValid(true);
 		} else {
 			acsData.setValid(false);

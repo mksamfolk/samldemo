@@ -90,6 +90,7 @@ public class SamlServicesImpl implements SamlServices {
 	 */
 	public void receiveSamlRequest(HttpServletRequest request, HttpServletResponse response) throws Exception {
 		SamlResponseData responseData = new SamlResponseData();
+		responseData.setIssuerId("ASI");
 		responseData.setSubjectId("someone");
 		samlHTTPPostEncoder.encodeResponse(samlResponseEncoder.encodeHTTPPostSamlResponse(request, response, responseData));
 	}

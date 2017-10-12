@@ -1,6 +1,9 @@
 package com.asi.security.saml.token;
 
 import java.util.HashMap;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Set;
 
 import javax.persistence.EntityManagerFactory;
 
@@ -18,57 +21,36 @@ public class TokenInitializer {
 			@Value("${ENCRYPT_KEY}") final String encryptionKey,
 			@Value("${API_CORE_URL}") final String apiCoreUrl,
 			@Value("${API_SESSION_URL}") final String apiSessionUrl
-			) {
+			) throws Exception {
 		
 		EncryptorFactory.setEncryptKey(encryptionKey);
 		
 		// This can turn to a properties file
 		
-		HashMap<String, String> coreConfig = new HashMap<>();
-	      coreConfig.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-	      coreConfig.put("hibernate.connection.driver_class", "org.postgresql.Driver");
-	      coreConfig.put("hibernate.connection.url", apiCoreUrl);
-	      coreConfig.put("hibernate.default_schema", "core");
-	      coreConfig.put("hibernate.ejb.naming_strategy", "org.hibernate.cfg.ImprovedNamingStrategy");
-	      coreConfig.put("hibernate.connection.autoReconnect", "true");
-	      coreConfig.put("hibernate.cache.use_second_level_cache", "false");
-	      coreConfig.put("hibernate.temp.use_jdbc_metadata_defaults", "false");
-	      coreConfig.put("hibernate.c3p0.min_size", "3");
-	      coreConfig.put("hibernate.c3p0.max_size", "30");
-	      coreConfig.put("hibernate.c3p0.maxIdleTimeExcessConnections", "120");
-	      coreConfig.put("hibernate.c3p0.max_statements", "50");
-	      coreConfig.put("hibernate.c3p0.idle_test_period", "900");
-	      coreConfig.put("hibernate.c3p0.preferredTestQuery", "SELECT 1");
-	      coreConfig.put("hibernate.show_sql", "false");  
-	      coreConfig.put("hibernate.jdbc.time_zone", "UTC");
+		Properties dbProp = new Properties();
+		dbProp.load(TokenInitializer.class.getClassLoader().getResourceAsStream("db_config.properties"));
 		
-		EntityManagerFactory coreEMF = javax.persistence.Persistence.createEntityManagerFactory("asi-compass-data", coreConfig);
+		Map<String,String> coreProps = new HashMap<>();
+		Map<String,String> sessionProps = new HashMap<>();
 		
+        Set<Object> keys = dbProp.keySet();
+        for(Object  k : keys){
+            String key = (String)k;
+            if (key.startsWith("core.hibernate")) {
+            	coreProps.put(key.substring("core.".length()), dbProp.getProperty(key));
+            } else if (key.startsWith("session.hibernate")) {
+            	sessionProps.put(key.substring("session.".length()), dbProp.getProperty(key));
+            }
+        }
+		
+        coreProps.put("hibernate.connection.url", apiCoreUrl);
+		EntityManagerFactory coreEMF = javax.persistence.Persistence.createEntityManagerFactory(dbProp.getProperty("core.persistence.name"), coreProps);
 		EntityManagerFactoryKeeper.setCoreEMF(coreEMF);
 		
-		HashMap<String, String> sessionConfig = new HashMap<>();
-		sessionConfig.put("hibernate.dialect", "org.hibernate.dialect.PostgreSQLDialect");
-		sessionConfig.put("hibernate.connection.driver_class", "org.postgresql.Driver");
-		sessionConfig.put("hibernate.connection.url", apiSessionUrl);
-		sessionConfig.put("hibernate.default_schema", "session");
-		sessionConfig.put("hibernate.ejb.naming_strategy", "org.hibernate.cfg.ImprovedNamingStrategy");
-		sessionConfig.put("hibernate.connection.autoReconnect", "true");
-		sessionConfig.put("hibernate.cache.use_second_level_cache", "false");
-		sessionConfig.put("hibernate.temp.use_jdbc_metadata_defaults", "false");
-	    sessionConfig.put("hibernate.c3p0.min_size", "3");
-	    sessionConfig.put("hibernate.c3p0.max_size", "30");
-	    sessionConfig.put("hibernate.c3p0.maxIdleTimeExcessConnections", "120");
-	    sessionConfig.put("hibernate.c3p0.max_statements", "50");
-	    sessionConfig.put("hibernate.c3p0.idle_test_period", "900");
-	    sessionConfig.put("hibernate.c3p0.preferredTestQuery", "SELECT 1");
-	    sessionConfig.put("hibernate.show_sql", "false");  
-	    sessionConfig.put("hibernate.jdbc.time_zone", "UTC");
-		
-	    EntityManagerFactory sessionEMF = javax.persistence.Persistence.createEntityManagerFactory("asi-session-data", sessionConfig);
-	    
+        sessionProps.put("hibernate.connection.url", apiSessionUrl);
+	    EntityManagerFactory sessionEMF = javax.persistence.Persistence.createEntityManagerFactory(dbProp.getProperty("session.persistence.name"), sessionProps);
 	    EntityManagerFactoryKeeper.setSessionEMF(sessionEMF);
 	    
 	}
-	
 	
 }

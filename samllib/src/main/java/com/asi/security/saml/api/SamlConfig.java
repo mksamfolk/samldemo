@@ -18,6 +18,10 @@ public interface SamlConfig {
 		return "backTo";
 	}
 	
+	public String getIdpPublicKey(String idp);
+	
+	public String getPrivateKey();
+	
 	public String getAcsURL();
 
 	public String getIdpURL();

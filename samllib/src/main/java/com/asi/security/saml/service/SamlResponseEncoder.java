@@ -35,13 +35,18 @@ import org.opensaml.xml.security.x509.BasicX509Credential;
 import org.opensaml.xml.signature.Signature;
 import org.opensaml.xml.signature.SignatureConstants;
 import org.opensaml.xml.signature.Signer;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
+import com.asi.security.saml.api.SamlConfig;
 import com.asi.security.saml.model.SamlResponseData;
 
 @Component
 public class SamlResponseEncoder {
 
+	@Autowired
+	private SamlConfig samlConfig;
+	
 	private SamlObjectBuilder samlObjectBuilder;
 	
 	public SamlResponseEncoder(SamlObjectBuilder samlObjectBuilder) {
@@ -77,11 +82,11 @@ public class SamlResponseEncoder {
 		
 		// build assertion
 		Assertion assertion = createAssertion(acsURL, responseData.getSubjectId(), responseData.getIssuerId());
-		signAssertion(assertion, "MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCPfc64IF+p/wvEkBVmS+CR+6lLQZoPEC/oxOGeLV7zTP9QgRU36SLb/iT9zWBxxx70Vu4K9b65szoxotRKTJHt8OtFsRf4XjhXAkJ0leWrcDB2P7nN8Lbg37j1+xXilRiXCdQ/htD1456jHYl1wqDSU2r6hB14GyzbAMZ/uD1Npjfuc6sK3OxFuTJilh0W9MzmBHdR17eaFjvu7XKQziJAoUq9ufD0DSi2F3gH8FRl+qmSxgztOzSTZJrlkGvHnfiuqRkJXF1mI0loOLsL0G0/4JEQ2fDlqt9QHq6mSRdl1dkrTb3CvHPm6s+NI+VHUB8Cq3N+OuZohZq+OzyitUmFAgMBAAECggEAIzsVdVnlgxyu6/0gc/RvWAh9QZAC3m3wBWvJpYeoR36BNWfsKMUiHPeiZ3p0kpr8O6vYWHKL+JZL1IIRM4jnT4+WhI79vqqLlLlmTa+8K0Kpc28kFK9kh4QGqsaSUgafef4c0dgtGCJiAdSvum0mBV4b5xRnE+VANylSk2tOCfFFh7+1XZ9MF1jFlYcX7dSIopnALtVvUc0IflMEeXH9HMLoL+FqwnNUaXQ7biuI4zRmztdl+bbCmpj0hAwnyQARuKOVINvYWixNLq26bGoP7DL+8uvLQva9amgM0idpFWHcjP0ADeBDRVLQsBmhmcqtCBV1QjGkkpDp6zAh419gBQKBgQDgE0xTBFg86ZQayaXsKhPqE34LXsuI2HFNdxRPtvnmF9zJ2zNpTiiO9r/YpozoXHH8bFCYQt/y/IjrrGh7NF2HH66JAi6pcKqrvN6dOyMtaIIQQEv/kJp+me9WIeB5CPEinwTxy3Q5vWviSRdg/VP63qNE5gqbYmfwI78sI26c6wKBgQCj717yHqiMsuLAJ2m/mmFZE126hGcqrgnC5vfQGSApiH6ta0IXxkBif0Owlo77Oh3wcZB5FiXLkRsdKHC6evnjqouMuk3eX5PEjXGMr7BIYWrUqLyulG55/VMrngkDucYm50MZt7wHvEqhzu8SsDcOkj7LPr82QjbcADmkGP1XTwKBgHUDnuf7bNjiYaVbiHo7vwqOA1SMvF1KKmD5vnGia/3smDAReFeVqTh/QtAwqYTuQdg/+BaLVcfeeOIZtrYgMndN5CdILHXvkDD/AIG7UDN2T/WMniNnsEZMvN+N8VtDgClEQaDDTn6YnK4e3UaZBDIN8dUZDJD4Yq7U/BBgsHLhAoGAUzT8DAhjpIZncQCQPCAvqPabbEAn3RHZAoQY5BbcrDgLlBoMweRuaZAO22KP0BP/fjsmCU+kf153VKViEkS48UVu707gly4L4oeoSrAh2ZsYjjfXDQVpzaE2xbzA9pMkcDqRZExNs99uQhK2ZdXrHAo+tQp0IyYYkjHLD+9fJyECgYAlE3gmHPuh2hsSVFuhRfc6QsOuaFSEYntZXa+xw9/zKscB6MSnZrkOfysdW5Q5SmvG/6Z1MiuKVT3QayEEJcKU7Nqe0BZb04RdW4sZ7ik7GKijVBxS8dHDwb256kY0zGmaUnrb+mPVlcew2CCmk7yO13Hu7WbPewxnhW+KxnDYFA==");
+		signAssertion(assertion, samlConfig.getPrivateKey());
 		
 		// Build response
 		Response samlMessage = samlObjectBuilder.buildResponse();
-		samlMessage.setID("foo");
+		samlMessage.setID("RESPONSE");
 		samlMessage.setVersion(SAMLVersion.VERSION_20);
 		samlMessage.setIssueInstant(new DateTime(0));
 		samlMessage.setStatus(responseStatus);

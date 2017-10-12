@@ -3,6 +3,7 @@ package com.asi.security.saml.impl;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
 
+import com.asi.api.helper.EnvVariableReader;
 import com.asi.security.saml.api.SamlConfig;
 
 @Component
@@ -22,6 +23,19 @@ public class SamlConfigImpl implements SamlConfig {
 	
 	@Value("${BACK_TO_PARAM:backTo}")
 	private String backParam;
+	
+	@Value("${ASI_SAML_PRIVATE_KEY}")
+	private String privateKey;
+
+	@Override
+	public String getIdpPublicKey(String idp) {
+		return EnvVariableReader.read(idp.toUpperCase() + "_SAML_PUBLIC_KEY");
+	}
+
+	@Override
+	public String getPrivateKey() {
+		return privateKey;
+	}
 
 	public String getAcsURL() {
 		return acsURL;

@@ -1,9 +1,6 @@
 package com.asi.security.saml.impl;
 
-import java.net.URL;
-import java.net.URLDecoder;
 import java.net.URLEncoder;
-import java.util.LinkedHashMap;
 import java.util.Map;
 
 import javax.persistence.EntityManager;
@@ -16,7 +13,7 @@ import com.asi.compassdb.dao.session.ASISessionManager;
 import com.asi.compassdb.entity.session.ASISession;
 import com.asi.compassdb.helper.EntityManagerFactoryKeeper;
 import com.asi.security.saml.api.SingleSignOn;
-import com.asi.security.saml.token.SessionIdInterpreter;
+import com.asi.security.saml.token.RelayStateInterpreter;
 import com.asi.security.saml.token.SessionInfo;
 
 @Component
@@ -25,23 +22,13 @@ public class SingleSignOnImpl implements SingleSignOn {
 	
 	public void process(String subject, String relayState, HttpServletResponse response) throws Exception {
 		
+		RelayStateInterpreter rsInterpreter = new RelayStateInterpreter();
+		rsInterpreter.readRelayState(relayState);
+		
+		Map<String, String> queryPairs = rsInterpreter.getQueryPairs();
+		SessionInfo sessionInfo = rsInterpreter.getSessionInfo();
+		
 		EntityManager sessionEM = EntityManagerFactoryKeeper.getSessionEMF().createEntityManager();
-		
-		SessionIdInterpreter ssInterpreter = new SessionIdInterpreter();
-		
-		URL relayURL = new URL(relayState);
-		Map<String, String> queryPairs = new LinkedHashMap<String, String>();
-		String query = relayURL.getQuery();
-		
-	    String[] pairs = query.split("&");
-	    for (String pair : pairs) {
-	        int idx = pair.indexOf("=");
-	        queryPairs.put(URLDecoder.decode(pair.substring(0, idx), "UTF-8"), URLDecoder.decode(pair.substring(idx + 1), "UTF-8"));
-	    }
-		
-		String p = queryPairs.get("p");
-		SessionInfo sessionInfo = ssInterpreter.readAuthToken(p);
-		
 		sessionEM.getTransaction().begin();
 		try {
 			ASISession newSession = ASISessionManager.createNewSession(sessionEM, sessionInfo.getTenantName(), subject, null, null);
@@ -62,7 +49,7 @@ public class SingleSignOnImpl implements SingleSignOn {
 			newQuery.append(e.getKey()).append("=").append(URLEncoder.encode(e.getValue(),"UTF-8"));
 		}
 		
-		String newLocation = relayURL.toExternalForm().replaceFirst("\\?.*$", "") + "?" + newQuery.toString();
+		String newLocation = rsInterpreter.getRelayURL().toExternalForm().replaceFirst("\\?.*$", "") + "?" + newQuery.toString();
 		response.sendRedirect(newLocation);
 		
 	}

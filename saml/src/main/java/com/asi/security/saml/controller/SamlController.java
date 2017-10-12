@@ -30,6 +30,10 @@ import com.asi.security.saml.api.SamlServices;
  * ASI_SAML_ACS_URL (SAML ACS. eg http://localhost/saml/callback)
  * ASI_SAML_IDP_URL (demo for now. eg http://localhost/saml/idp)
  * 
+ * ASI_SAML_PRIVATE_KEY
+ * ASI_SAML_PUBLIC_KEY
+ * {IDP}_SAML_PUBLIC_KEY
+ * 
  */
 
 @RestController
